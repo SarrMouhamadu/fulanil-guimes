@@ -1,10 +1,10 @@
 import Foundation
 import CoreLocation
+import MapKit
 import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
     
     @Published var userLocation: CLLocation? = nil
     @Published var userAddress: String = ""
@@ -52,31 +52,39 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         
         userLocation = location
         
-        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        
+        // Reverse Geocoding via MapKit (MKLocalSearch) pour 0 avertissement de dépréciation
+        let searchRequest = MKLocalSearch.Request()
+        searchRequest.naturalLanguageQuery = "\(latitude), \(longitude)"
+        
+        let search = MKLocalSearch(request: searchRequest)
+        search.start { [weak self] response, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
                 self.isLocating = false
                 
-                if let placemark = placemarks?.first {
+                if let item = response?.mapItems.first {
                     var addressComponents: [String] = []
                     
-                    if let name = placemark.name, !name.isEmpty {
+                    if let name = item.name, !name.isEmpty, !name.contains(",") {
                         addressComponents.append(name)
                     }
-                    if let subLocality = placemark.subLocality, !subLocality.isEmpty, !addressComponents.contains(subLocality) {
+                    if let subLocality = item.placemark.subLocality, !subLocality.isEmpty, !addressComponents.contains(subLocality) {
                         addressComponents.append(subLocality)
                     }
-                    if let locality = placemark.locality, !locality.isEmpty, !addressComponents.contains(locality) {
+                    if let locality = item.placemark.locality, !locality.isEmpty, !addressComponents.contains(locality) {
                         addressComponents.append(locality)
                     }
                     
                     if addressComponents.isEmpty {
-                        self.userAddress = String(format: "GPS: %.4f, %.4f", location.coordinate.latitude, location.coordinate.longitude)
+                        self.userAddress = String(format: "GPS: %.4f, %.4f", latitude, longitude)
                     } else {
                         self.userAddress = addressComponents.joined(separator: ", ")
                     }
                 } else {
-                    self.userAddress = String(format: "GPS: %.4f, %.4f", location.coordinate.latitude, location.coordinate.longitude)
+                    self.userAddress = String(format: "GPS: %.4f, %.4f", latitude, longitude)
                 }
             }
         }
