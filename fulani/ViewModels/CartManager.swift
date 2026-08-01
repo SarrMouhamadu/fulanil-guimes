@@ -65,4 +65,9 @@ class CartManager: ObservableObject {
             items.remove(at: index)
         }
     }
+    
+    func confirmOrderAndNavigateToTracking() {
+        items.removeAll()
+        selectedTab = 4
+    }
 }

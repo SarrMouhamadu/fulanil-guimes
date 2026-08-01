@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct CheckoutView: View {
+    @EnvironmentObject var cartManager: CartManager
+    @Environment(\.presentationMode) var presentationMode
+    
     @State private var address: String = ""
     @State private var deliveryDate = Date()
     @State private var paymentMethod = 0
@@ -54,7 +57,8 @@ struct CheckoutView: View {
                 title: Text("Commande confirmée ✅"),
                 message: Text("Votre commande est en cours de préparation."),
                 dismissButton: .default(Text("OK")) {
-                    // Reset et navigation vers le suivi (idéalement géré par le ViewRouter)
+                    cartManager.confirmOrderAndNavigateToTracking()
+                    presentationMode.wrappedValue.dismiss()
                 }
             )
         }
@@ -64,5 +68,6 @@ struct CheckoutView: View {
 #Preview {
     NavigationView {
         CheckoutView()
+            .environmentObject(CartManager())
     }
 }
