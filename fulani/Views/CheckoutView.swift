@@ -73,7 +73,7 @@ struct CheckoutView: View {
         .onAppear {
             locationManager.requestLocation()
         }
-        .onChange(of: locationManager.userAddress) { newAddress in
+        .onChange(of: locationManager.userAddress) { _, newAddress in
             if !newAddress.isEmpty {
                 address = newAddress
             }
