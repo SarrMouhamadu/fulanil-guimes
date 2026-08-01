@@ -7,7 +7,7 @@ struct CartView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Fond de l'application très légèrement grisé pour faire ressortir l'élégance des cartes blanches
+                // Fond de l'application aligné exactement sur l'Accueil
                 Color(.systemGroupedBackground)
                     .edgesIgnoringSafeArea(.all)
                 
@@ -16,15 +16,15 @@ struct CartView: View {
                         emptyStateView
                     } else {
                         VStack(spacing: 0) {
-                            // Liste de produits avec marges de sécurité anti-débordement
+                            // Liste de produits avec marges identiques à la page Accueil (20 pt)
                             ScrollView(showsIndicators: false) {
-                                VStack(spacing: 14) {
+                                VStack(spacing: 16) {
                                     ForEach(cartManager.items) { item in
                                         cartItemCard(for: item)
                                     }
                                 }
                                 .padding(.horizontal, 20)
-                                .padding(.top, 16)
+                                .padding(.top, 20)
                                 .padding(.bottom, 24)
                             }
                             
@@ -35,6 +35,7 @@ struct CartView: View {
                 }
             }
             .safeAreaInset(edge: .top) {
+                // En-tête avec Glassmorphism (.ultraThinMaterial), identique à l'Accueil et au Catalogue
                 headerView
             }
             .navigationBarHidden(true)
@@ -42,7 +43,7 @@ struct CartView: View {
         }
     }
     
-    // MARK: - Header (En-tête Premium Responsive)
+    // MARK: - Header (Aligné sur HomeView.swift)
     private var headerView: some View {
         HStack {
             Button(action: {
@@ -51,38 +52,33 @@ struct CartView: View {
                 }
                 cartManager.selectedTab = 0
             }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 20, weight: .bold))
-                }
-                .foregroundColor(Theme.primaryGreen)
-                .frame(width: 44, height: 44, alignment: .leading)
-                .contentShape(Rectangle())
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(Theme.primaryGreen)
+                    .frame(width: 40, height: 40)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
             
             Spacer()
             
             Text("Panier")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundColor(Theme.textDark)
             
             Spacer()
             
-            // Élément fantôme pour garantir une symétrie parfaite et éviter toute troncature
+            // Espaceur invisible pour garder le titre parfaitement centré comme sur l'Accueil
             Color.clear
-                .frame(width: 44, height: 44)
+                .frame(width: 40, height: 40)
         }
-        .padding(.horizontal, 24) // Marge généreuse pour ne plus cacher la flèche retour
-        .padding(.top, 10)
-        .padding(.bottom, 12)
-        .background(
-            Color.white
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 3)
-        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial)
+        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
     }
     
-    // MARK: - Carte Produit Responsive (Sans débordement)
+    // MARK: - Carte Produit Responsive
     private func cartItemCard(for item: CartItem) -> some View {
         HStack(alignment: .center, spacing: 12) {
             // Miniature produit calibrée (70x70 pt) et strictement découpée contre le débordement
@@ -101,25 +97,25 @@ struct CartView: View {
             }
             .frame(width: 70, height: 70)
             .background(Color(.systemGray6))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
             
-            // Détails : Nom, Prix et Contrôleur de quantité compact
+            // Détails : Nom, Prix et Contrôleur de quantité
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.product.name)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.textDark)
                         .lineLimit(1)
-                        .minimumScaleFactor(0.75)
+                        .minimumScaleFactor(0.78)
                     
-                    Text(formatAmount(item.product.pricePerKg) + " / kg")
+                    Text(item.product.pricePerKg.formattedFCFA + " / kg")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color(.secondaryLabel))
                         .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+                        .minimumScaleFactor(0.85)
                 }
                 
-                // Contrôleur de quantité optimisé en largeur pour petits écrans
+                // Contrôleur de quantité optimisé pour éviter tout débordement sur petit écran
                 HStack(spacing: 10) {
                     Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity - 1) }) {
                         Image(systemName: "minus")
@@ -156,7 +152,7 @@ struct CartView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Icône de suppression confortable
+            // Icône de suppression confortable et accessible
             Button(action: {
                 cartManager.removeFromCart(item: item)
             }) {
@@ -167,16 +163,16 @@ struct CartView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(12) // Espacement interne ajusté pour éviter de pousser vers la gauche
+        .padding(14) // Grille d'espacement HIG de 14pt (identique aux cartes de la page Accueil)
         .background(Color.white)
-        .cornerRadius(18)
-        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
     }
     
-    // MARK: - Section Inférieure de Commande Responsive
+    // MARK: - Section Inférieure de Commande
     private var bottomCheckoutSection: some View {
         VStack(spacing: 16) {
-            // Sous-total avec visibilité garantie (sans coupure ni chevauchement)
+            // Sous-total aligné sur les marges de 20 pt de l'Accueil et garanti anti-coupure
             HStack(alignment: .center) {
                 Text("Sous-total")
                     .font(.system(size: 16, weight: .semibold))
@@ -186,15 +182,14 @@ struct CartView: View {
                 
                 Spacer()
                 
-                Text(formatAmount(cartManager.subtotal))
+                Text(cartManager.subtotal.formattedFCFA)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.textDark)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
             }
-            .padding(.horizontal, 4)
             
-            // Jauge de livraison offerte modernisée
+            // Jauge de livraison offerte
             VStack(alignment: .leading, spacing: 6) {
                 if cartManager.isDeliveryFree {
                     Text("🎉 Livraison offerte sur cette commande !")
@@ -205,7 +200,7 @@ struct CartView: View {
                     
                     customProgressBar(progress: 1.0, color: Theme.primaryGreen)
                 } else {
-                    Text("Plus que \(formatAmount(10000 - cartManager.subtotal)) pour la livraison offerte !")
+                    Text("Plus que \((10000 - cartManager.subtotal).formattedFCFA) pour la livraison offerte !")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color.orange)
                         .lineLimit(2)
@@ -216,7 +211,7 @@ struct CartView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Badges compacts
+            // Badges de réassurance
             TrustBadgesView()
                 .padding(.top, 2)
             
@@ -232,12 +227,12 @@ struct CartView: View {
                     .shadow(color: Theme.primaryGreen.opacity(0.3), radius: 8, x: 0, y: 4)
             }
         }
-        .padding(.horizontal, 24) // Marge renforcée pour que les textes sous-total soient toujours 100% visibles
+        .padding(.horizontal, 20) // Marges latérales de 20 pt exactes
         .padding(.top, 20)
         .padding(.bottom, 20)
         .background(
             Color.white
-                .shadow(color: Color.black.opacity(0.06), radius: 14, y: -4)
+                .shadow(color: Color.black.opacity(0.05), radius: 12, y: -3)
         )
     }
     
@@ -302,15 +297,6 @@ struct CartView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 20)
-    }
-    
-    // MARK: - Formateur de devises (Format Français : 1 550 FCFA)
-    private func formatAmount(_ value: Int) -> String {
-        let formatter = NumberFormatter()
-        formatter.numberStyle = .decimal
-        formatter.groupingSeparator = " "
-        let formattedNumber = formatter.string(from: NSNumber(value: value)) ?? "\(value)"
-        return "\(formattedNumber) FCFA"
     }
 }
 
