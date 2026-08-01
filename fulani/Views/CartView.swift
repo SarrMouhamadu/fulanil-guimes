@@ -11,21 +11,25 @@ struct CartView: View {
                 Color(.systemGroupedBackground)
                     .edgesIgnoringSafeArea(.all)
                 
+                // Intégration du Header en tête de VStack pour garantir qu'il ne passe JAMAIS sous l'encoche (Notch/Dynamic Island)
                 VStack(spacing: 0) {
+                    headerView
+                    
                     if cartManager.items.isEmpty {
                         emptyStateView
                     } else {
                         VStack(spacing: 0) {
-                            // Liste de produits avec marges latérales de sécurité renforcées (20 pt)
+                            // Liste de produits contrainte strictement dans les limites de l'écran
                             ScrollView(showsIndicators: false) {
-                                VStack(spacing: 14) {
+                                VStack(spacing: 12) {
                                     ForEach(cartManager.items) { item in
                                         cartItemCard(for: item)
                                     }
                                 }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 16)
-                                .padding(.bottom, 24)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 12)
+                                .padding(.bottom, 20)
+                                .frame(maxWidth: .infinity)
                             }
                             
                             // Section inférieure : Sous-total, Jauge, Badges et Bouton de commande
@@ -34,62 +38,63 @@ struct CartView: View {
                     }
                 }
             }
-            .safeAreaInset(edge: .top) {
-                headerView
-            }
             .navigationBarHidden(true)
-            .toolbar(.hidden, for: .tabBar)
         }
     }
     
-    // MARK: - Header (En-tête Premium et Visible)
+    // MARK: - Header (En-tête Premium Parfaitement Visible)
     private var headerView: some View {
         HStack {
-            // Bouton retour avec marge latérale confortable pour ne plus jamais être caché
+            // Bouton retour dégagé des bords de l'écran
             Button(action: {
                 if presentationMode.wrappedValue.isPresented {
                     presentationMode.wrappedValue.dismiss()
                 }
                 cartManager.selectedTab = 0
             }) {
-                HStack(spacing: 4) {
+                HStack(spacing: 6) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .bold))
                         .foregroundColor(Theme.primaryGreen)
+                    Text("Retour")
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundColor(Theme.primaryGreen)
                 }
-                .frame(width: 44, height: 44, alignment: .leading)
+                .padding(.vertical, 8)
                 .contentShape(Rectangle())
             }
             .buttonStyle(PlainButtonStyle())
             
             Spacer()
             
-            Text("Panier")
+            Text("Panier (\(cartManager.cartCount))")
                 .font(.system(size: 20, weight: .bold, design: .rounded))
                 .foregroundColor(Theme.textDark)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             
             Spacer()
             
-            // Élément fantôme pour garantir une symétrie parfaite au pixel près
+            // Élément fantôme pour préserver une symétrie exacte
             Color.clear
-                .frame(width: 44, height: 44)
+                .frame(width: 65, height: 20)
         }
-        .padding(.horizontal, 24) // Marge élargie pour protéger des bords arrondis et encoches
-        .padding(.vertical, 12)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
         .background(
             Color.white
                 .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 3)
         )
     }
     
-    // MARK: - Carte Produit (Layout Compact & Sans Débordement)
+    // MARK: - Carte Produit (Calibrage strict pour interdir tout débordement à gauche)
     private func cartItemCard(for item: CartItem) -> some View {
         HStack(alignment: .center, spacing: 12) {
-            // Miniature produit calibrée à 68x68 pt pour laisser respirer le texte et les contrôles
+            // Miniature produit calibrée exactement à 60x60 pt pour une insertion parfaite à gauche
             Group {
                 if item.product.isSystemImage {
                     Image(systemName: item.product.imageName)
-                        .font(.system(size: 30))
+                        .font(.system(size: 28))
                         .foregroundColor(Theme.primaryGreen)
                 } else {
                     Image(item.product.imageName)
@@ -97,182 +102,178 @@ struct CartView: View {
                         .aspectRatio(contentMode: .fill)
                 }
             }
-            .frame(width: 68, height: 68)
+            .frame(width: 60, height: 60)
             .background(Color(.systemGray6))
-            .cornerRadius(14)
+            .cornerRadius(12)
             .clipped()
             
-            // Détails : Nom, Prix discret et Contrôleur de quantité
-            VStack(alignment: .leading, spacing: 8) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.product.name)
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.textDark)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75) // Protection stricte contre l'écrasement
-                    
-                    Text(formatAmount(item.product.pricePerKg) + " / kg")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(Color(.systemGray))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                }
+            // Colonne Texte flexible qui se rétracte au besoin au lieu d'élargir la carte
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.product.name)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textDark)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.65)
                 
-                // Contrôleur de quantité ergonomique et compact (évite tout débordement à gauche)
-                HStack(spacing: 10) {
-                    Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity - 1) }) {
-                        Image(systemName: "minus")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(Theme.primaryGreen)
-                            .frame(width: 26, height: 26)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    
-                    Text("\(item.quantity) kg")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .foregroundColor(Theme.textDark)
-                        .frame(minWidth: 32, alignment: .center)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
-                    
-                    Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity + 1) }) {
-                        Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(Theme.primaryGreen)
-                            .frame(width: 26, height: 26)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 1)
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .padding(.horizontal, 6)
-                .padding(.vertical, 4)
-                .background(Color(.systemGray6))
-                .cornerRadius(20)
+                Text(formatAmount(item.product.pricePerKg) + " / kg")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(.systemGray))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             
-            Spacer(minLength: 4)
+            // Contrôleur de quantité ultra-compact (largeur totale garantie < 85 pt)
+            HStack(spacing: 6) {
+                Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity - 1) }) {
+                    Image(systemName: "minus")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Theme.primaryGreen)
+                        .frame(width: 24, height: 24)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(color: Color.black.opacity(0.08), radius: 2, x: 0, y: 1)
+                }
+                .buttonStyle(PlainButtonStyle())
+                
+                Text("\(item.quantity)")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textDark)
+                    .frame(minWidth: 20, alignment: .center)
+                
+                Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity + 1) }) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(Theme.primaryGreen)
+                        .frame(width: 24, height: 24)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(color: Color.black.opacity(0.08), radius: 2, x: 0, y: 1)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 4)
+            .background(Color(.systemGray6))
+            .cornerRadius(16)
             
-            // Icône de suppression tactile
+            // Icône de suppression rapprochée et tactile
             Button(action: {
                 cartManager.removeFromCart(item: item)
             }) {
                 Image(systemName: "trash")
-                    .font(.system(size: 17, weight: .medium))
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(Color.red.opacity(0.85))
-                    .frame(width: 36, height: 36)
+                    .frame(width: 30, height: 30)
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .padding(.vertical, 12)
+        .frame(maxWidth: .infinity) // Interdit absolument à la carte de déborder de l'écran
         .background(Color.white)
-        .cornerRadius(18)
-        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
     }
     
-    // MARK: - Section Inférieure de Commande
+    // MARK: - Section Inférieure de Commande (Sans Troncature)
     private var bottomCheckoutSection: some View {
-        VStack(spacing: 18) {
-            // Sous-total avec protection anti-troncature
+        VStack(spacing: 14) {
+            // Sous-total avec visibilité 100% garantie sur tous les écrans
             HStack(alignment: .center) {
                 Text("Sous-total")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 16, weight: .semibold, design: .rounded))
                     .foregroundColor(Color(.secondaryLabel))
                     .lineLimit(1)
                 
                 Spacer()
                 
                 Text(formatAmount(cartManager.subtotal))
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .heavy, design: .rounded))
                     .foregroundColor(Theme.textDark)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.65) // Garantit la visibilité totale des grands montants
+                    .minimumScaleFactor(0.5) // Rend impossible la coupure des chiffres du prix
             }
             
-            // Jauge de livraison offerte modernisée
-            VStack(alignment: .leading, spacing: 8) {
+            // Jauge de livraison offerte
+            VStack(alignment: .leading, spacing: 6) {
                 if cartManager.isDeliveryFree {
                     Text("🎉 Livraison offerte sur cette commande !")
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.primaryGreen)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     customProgressBar(progress: 1.0, color: Theme.primaryGreen)
                 } else {
-                    Text("Plus que \(formatAmount(10000 - cartManager.subtotal)) pour la livraison offerte !")
-                        .font(.system(size: 13, weight: .semibold))
+                    Text("Plus que \(formatAmount(10000 - cartManager.subtotal)) pour la livraison gratuite !")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                         .foregroundColor(Color.orange)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.8)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
                     customProgressBar(progress: min(Double(cartManager.subtotal) / 10000.0, 1.0), color: Color.orange)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Badges compacts, uniformes et harmonieux
+            // Badges de réassurance
             TrustBadgesView()
                 .padding(.top, 2)
             
-            // Bouton de commande Premium avec marge de sécurité renforcée
+            // Bouton de commande
             NavigationLink(destination: CheckoutView()) {
                 Text("Passer la commande")
                     .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 54)
+                    .frame(height: 52)
                     .background(Theme.primaryGreen)
-                    .cornerRadius(20)
-                    .shadow(color: Theme.primaryGreen.opacity(0.35), radius: 10, x: 0, y: 5)
+                    .cornerRadius(18)
+                    .shadow(color: Theme.primaryGreen.opacity(0.3), radius: 8, x: 0, y: 4)
             }
         }
-        .padding(.horizontal, 24) // Marge élargie (24 pt) pour une visibilité irréprochable des écritures
-        .padding(.top, 22)
-        .padding(.bottom, 28) // Protection renforcée contre l'indicateur d'accueil iOS (Barre du bas)
+        .padding(.horizontal, 20)
+        .padding(.top, 16)
+        .padding(.bottom, 20) // Espace confortable au-dessus de la Tab Bar
         .background(
             Color.white
-                .shadow(color: Color.black.opacity(0.07), radius: 18, y: -4)
+                .shadow(color: Color.black.opacity(0.06), radius: 16, y: -4)
         )
     }
     
-    // MARK: - Barre de progression personnalisée (Capsule iOS Native)
+    // MARK: - Barre de progression personnalisée
     private func customProgressBar(progress: Double, color: Color) -> some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Color(.systemGray5))
-                    .frame(height: 8)
+                    .frame(height: 7)
                 
                 Capsule()
                     .fill(color)
-                    .frame(width: max(geometry.size.width * CGFloat(progress), 0), height: 8)
+                    .frame(width: max(geometry.size.width * CGFloat(progress), 0), height: 7)
                     .animation(.spring(response: 0.4, dampingFraction: 0.7), value: progress)
             }
         }
-        .frame(height: 8)
+        .frame(height: 7)
     }
     
     // MARK: - Empty State Premium
     private var emptyStateView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
+            Spacer()
+            
             ZStack {
                 Circle()
                     .fill(Theme.primaryGreen.opacity(0.12))
-                    .frame(width: 120, height: 120)
+                    .frame(width: 110, height: 110)
                 
                 Image(systemName: "basket.fill")
-                    .font(.system(size: 54))
+                    .font(.system(size: 50))
                     .foregroundColor(Theme.primaryGreen)
             }
-            .padding(.bottom, 4)
             
             VStack(spacing: 8) {
                 Text("Votre panier est vide")
@@ -283,8 +284,7 @@ struct CartView: View {
                     .font(.system(size: 15, weight: .regular))
                     .foregroundColor(Color(.secondaryLabel))
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 16)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 20)
             }
             
             Button(action: {
@@ -294,16 +294,17 @@ struct CartView: View {
                     .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 54)
+                    .frame(height: 52)
                     .background(Theme.primaryGreen)
-                    .cornerRadius(20)
+                    .cornerRadius(18)
                     .shadow(color: Theme.primaryGreen.opacity(0.3), radius: 8, x: 0, y: 4)
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 28)
             .padding(.top, 8)
+            
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .padding(.horizontal, 20)
     }
     
     // MARK: - Formateur de devises (Format Français : 1 550 FCFA)
