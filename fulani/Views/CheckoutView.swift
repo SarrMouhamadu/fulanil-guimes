@@ -3,6 +3,7 @@ import SwiftUI
 struct CheckoutView: View {
     @EnvironmentObject var cartManager: CartManager
     @Environment(\.presentationMode) var presentationMode
+    @StateObject private var locationManager = LocationManager()
     
     @State private var address: String = ""
     @State private var deliveryDate = Date()
@@ -14,7 +15,24 @@ struct CheckoutView: View {
     var body: some View {
         Form {
             Section(header: Text("Livraison")) {
-                TextField("Adresse complète", text: $address)
+                HStack {
+                    TextField("Adresse complète", text: $address)
+                    
+                    if locationManager.isLocating {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Button(action: {
+                            locationManager.requestLocation()
+                        }) {
+                            Image(systemName: "location.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(Theme.primaryGreen)
+                        }
+                        .buttonStyle(BorderlessButtonStyle())
+                    }
+                }
+                
                 DatePicker("Date & Heure", selection: $deliveryDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
             }
             
@@ -52,6 +70,14 @@ struct CheckoutView: View {
         }
         .navigationTitle("Checkout")
         .toolbar(.hidden, for: .tabBar)
+        .onAppear {
+            locationManager.requestLocation()
+        }
+        .onChange(of: locationManager.userAddress) { newAddress in
+            if !newAddress.isEmpty {
+                address = newAddress
+            }
+        }
         .alert(isPresented: $isOrderConfirmed) {
             Alert(
                 title: Text("Commande confirmée ✅"),
