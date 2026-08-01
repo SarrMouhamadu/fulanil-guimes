@@ -4,7 +4,6 @@ import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
-    private let geocoder = CLGeocoder()
     
     @Published var userLocation: CLLocation? = nil
     @Published var userAddress: String = ""
@@ -54,7 +53,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         reverseGeocode(location: location)
     }
     
+    @available(iOS, deprecated: 26.0)
     private func reverseGeocode(location: CLLocation) {
+        let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
             DispatchQueue.main.async {
                 guard let self = self else { return }
