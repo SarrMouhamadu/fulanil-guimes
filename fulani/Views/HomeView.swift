@@ -3,25 +3,30 @@ import SwiftUI
 struct HomeView: View {
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    // Grille Produits Vedettes
-                    Text("Nos arrivages du jour")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .padding(.horizontal)
-                        .padding(.top, 24)
-                    
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        // On met en avant uniquement les légumes qui ont une vraie photo
-                        ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
-                            ProductCardView(product: product)
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .edgesIgnoringSafeArea(.all)
+                
+                ScrollView(showsIndicators: false) {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Grille Produits Vedettes
+                        Text("Nos arrivages du jour")
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(Theme.textDark)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 20)
+                        
+                        // Grille responsive adaptative (du petit iPhone au iPad)
+                        LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
+                            // On met en avant uniquement les légumes qui ont une vraie photo
+                            ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
+                                ProductCardView(product: product)
+                            }
                         }
+                        .padding(.horizontal, 20)
                     }
-                    .padding(.horizontal)
+                    .padding(.bottom, 24)
                 }
-                .padding(.vertical)
-                .padding(.bottom, 20)
             }
             .safeAreaInset(edge: .top) {
                 // En-tête Dynamique (Sticky Header) avec Glassmorphism
@@ -30,27 +35,29 @@ struct HomeView: View {
                         print("Drawer menu cliqué - Ouverture du menu latéral...")
                     }) {
                         Image(systemName: "line.3.horizontal")
-                            .font(.title3)
+                            .font(.system(size: 18, weight: .semibold))
                             .foregroundColor(Theme.primaryGreen)
-                            .padding(4)
+                            .frame(width: 40, height: 40)
+                            .contentShape(Rectangle())
                     }
+                    .buttonStyle(PlainButtonStyle())
                     
                     Spacer()
+                    
                     Text("Fulani Légumes")
-                        .font(.headline)
-                        .fontWeight(.bold)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.textDark)
+                    
                     Spacer()
                     
                     // Espaceur invisible pour garder le titre parfaitement centré
-                    Image(systemName: "line.3.horizontal")
-                        .font(.title3)
-                        .opacity(0)
-                        .padding(4)
+                    Color.clear
+                        .frame(width: 40, height: 40)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
                 .background(.ultraThinMaterial)
-                .shadow(color: Color.black.opacity(0.05), radius: 3, x: 0, y: 2)
+                .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
             }
             .navigationBarHidden(true)
         }
@@ -58,58 +65,71 @@ struct HomeView: View {
 }
 
 
-// Sous-composant pour les cartes produits
+// Sous-composant responsive pour les cartes produits
 struct ProductCardView: View {
     let product: Product
     @EnvironmentObject var cartManager: CartManager
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 10) {
+            // Conteneur d'image carré à ratio fluide
             Rectangle()
-                .fill(Theme.lightGray)
+                .fill(Color(.systemGray6))
                 .aspectRatio(1, contentMode: .fit)
                 .overlay(
                     Group {
                         if product.isSystemImage {
                             Image(systemName: product.imageName)
-                                .font(.largeTitle)
+                                .font(.system(size: 44))
                                 .foregroundColor(Theme.primaryGreen)
                         } else {
                             Image(product.imageName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                     }
                 )
-                .cornerRadius(12)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
             
-            Text(product.name)
-                .font(.headline)
-                .foregroundColor(Theme.textDark)
+            // Textes protégés contre la troncature (lineLimit & minimumScaleFactor)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.name)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textDark)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.78) // Garantit que les noms longs rentrent sur iPhone SE
+                
+                Text(product.pricePerKg.formattedFCFA + " / kg")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(.secondaryLabel))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+            }
             
-            Text("\(product.pricePerKg) FCFA / kg")
-                .font(.subheadline)
-                .foregroundColor(Theme.textLight)
+            Spacer(minLength: 0)
             
+            // Bouton d'ajout au panier tactile et harmonisé
             Button(action: {
                 cartManager.addToCart(product: product)
             }) {
-                Text("Ajouter")
-                    .font(.footnote)
-                    .fontWeight(.bold)
-                    .foregroundColor(Theme.primaryGreen)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(Theme.primaryGreen.opacity(0.15))
-                    .cornerRadius(8)
+                HStack(alignment: .center, spacing: 6) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text("Ajouter")
+                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                }
+                .foregroundColor(Theme.primaryGreen)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(Theme.primaryGreen.opacity(0.14))
+                .cornerRadius(12)
             }
-            .padding(.top, 4)
+            .buttonStyle(PlainButtonStyle())
         }
-        .padding(12)
+        .padding(14) // Grille d'espacement HIG
         .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
     }
 }
 

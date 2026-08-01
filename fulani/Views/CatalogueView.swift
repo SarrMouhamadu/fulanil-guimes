@@ -7,81 +7,112 @@ struct CatalogueView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                // Barre de recherche
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(Theme.textLight)
-                    TextField("Rechercher un légume...", text: $viewModel.searchText)
-                    
-                    Button(action: {
-                        showChatbot = true
-                    }) {
-                        Image(systemName: "mic.fill")
-                            .foregroundColor(Theme.primaryGreen)
-                    }
-                }
-                .padding()
-                .background(Theme.lightGray)
-                .cornerRadius(12)
-                .padding(.horizontal)
+            ZStack {
+                Color(.systemGroupedBackground)
+                    .edgesIgnoringSafeArea(.all)
                 
-                // Filtres
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(viewModel.categories, id: \.self) { category in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 16) {
+                        // Barre de recherche
+                        HStack(spacing: 12) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundColor(Color(.secondaryLabel))
+                            
+                            TextField("Rechercher un légume...", text: $viewModel.searchText)
+                                .font(.system(size: 16, design: .rounded))
+                            
                             Button(action: {
-                                viewModel.selectedCategory = category
+                                showChatbot = true
                             }) {
-                                Text(category)
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(viewModel.selectedCategory == category ? Theme.primaryGreen : Theme.lightGray)
-                                    .foregroundColor(viewModel.selectedCategory == category ? .white : Theme.textDark)
-                                    .cornerRadius(20)
+                                Image(systemName: "mic.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(Theme.primaryGreen)
+                                    .padding(6)
+                                    .background(Theme.primaryGreen.opacity(0.12))
+                                    .clipShape(Circle())
                             }
+                            .buttonStyle(PlainButtonStyle())
                         }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.vertical, 8)
-                
-                // Grille de produits
-                ScrollView {
-                    if viewModel.isLoading {
-                        VStack(spacing: 16) {
-                            Spacer().frame(height: 50)
-                            ProgressView()
-                                .scaleEffect(1.5)
-                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
-                            Text("Chargement des légumes...")
-                                .foregroundColor(Theme.textLight)
-                                .padding(.top, 8)
-                        }
-                    } else {
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                            ForEach(viewModel.filteredProducts) { product in
-                                NavigationLink(destination: ProductDetailView(product: product)) {
-                                    ProductCardView(product: product)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.white)
+                        .cornerRadius(16)
+                        .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 2)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        
+                        // Filtres par catégories
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(viewModel.categories, id: \.self) { category in
+                                    Button(action: {
+                                        viewModel.selectedCategory = category
+                                    }) {
+                                        Text(category)
+                                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 8)
+                                            .background(viewModel.selectedCategory == category ? Theme.primaryGreen : Color.white)
+                                            .foregroundColor(viewModel.selectedCategory == category ? .white : Theme.textDark)
+                                            .cornerRadius(20)
+                                            .shadow(color: Color.black.opacity(0.04), radius: 4, x: 0, y: 2)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
                                 }
-                                .buttonStyle(PlainButtonStyle())
                             }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 4)
                         }
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                        
+                        // Grille de produits responsive adaptative
+                        if viewModel.isLoading {
+                            VStack(spacing: 16) {
+                                Spacer().frame(height: 60)
+                                ProgressView()
+                                    .scaleEffect(1.3)
+                                    .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
+                                Text("Chargement des légumes...")
+                                    .font(.system(size: 15, weight: .medium, design: .rounded))
+                                    .foregroundColor(Color(.secondaryLabel))
+                            }
+                        } else {
+                            LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
+                                ForEach(viewModel.filteredProducts) { product in
+                                    NavigationLink(destination: ProductDetailView(product: product)) {
+                                        ProductCardView(product: product)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.top, 4)
+                            .padding(.bottom, 24)
+                        }
                     }
                 }
             }
-            .navigationTitle("Catalogue")
+            .safeAreaInset(edge: .top) {
+                // En-tête Sticky Safe Area avec Glassmorphism
+                HStack {
+                    Spacer()
+                    Text("Catalogue")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundColor(Theme.textDark)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(.ultraThinMaterial)
+                .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
+            }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showChatbot) {
                 ChatbotView()
             }
         }
     }
 }
-
+                    
 #Preview {
     CatalogueView().environmentObject(CartManager())
 }
