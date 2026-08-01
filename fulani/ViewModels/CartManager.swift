@@ -68,4 +68,8 @@ class CartManager: ObservableObject {
             items.remove(at: index)
         }
     }
+    
+    func clearCart() {
+        items.removeAll()
+    }
 }
