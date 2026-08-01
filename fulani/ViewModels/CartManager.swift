@@ -36,10 +36,7 @@ class CartManager: ObservableObject {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
         
-        // Animation et Toast
-        withAnimation {
-            cartBounces.toggle()
-        }
+        // Toast
         showToast(message: "\(product.name) ajouté(es) au panier !")
     }
     
@@ -67,9 +64,5 @@ class CartManager: ObservableObject {
         if let index = items.firstIndex(where: { $0.id == item.id }) {
             items.remove(at: index)
         }
-    }
-    
-    func clearCart() {
-        items.removeAll()
     }
 }

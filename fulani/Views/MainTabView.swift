@@ -28,8 +28,6 @@ struct MainTabView: View {
                     Label("Panier", systemImage: "cart.fill")
                 }
                 .badge(cartManager.cartCount)
-                .scaleEffect(cartManager.cartBounces ? 1.2 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.5), value: cartManager.cartBounces)
                 .tag(3)
             
             OrderTrackingView()

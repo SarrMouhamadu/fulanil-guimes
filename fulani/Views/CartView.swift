@@ -39,24 +39,25 @@ struct CartView: View {
                 headerView
             }
             .navigationBarHidden(true)
-            .toolbar(.hidden, for: .tabBar)
         }
     }
     
-    // MARK: - Header (Aligné sur HomeView.swift)
+    // MARK: - Header (Aligné sur HomeView.swift & CatalogueView.swift)
     private var headerView: some View {
         HStack {
             Button(action: {
                 if presentationMode.wrappedValue.isPresented {
                     presentationMode.wrappedValue.dismiss()
+                } else {
+                    cartManager.selectedTab = 0
                 }
-                cartManager.selectedTab = 0
             }) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(Theme.primaryGreen)
-                    .frame(width: 40, height: 40)
-                    .contentShape(Rectangle())
+                    .frame(width: 36, height: 36)
+                    .background(Theme.primaryGreen.opacity(0.12))
+                    .clipShape(Circle())
             }
             .buttonStyle(PlainButtonStyle())
             
@@ -68,9 +69,9 @@ struct CartView: View {
             
             Spacer()
             
-            // Espaceur invisible pour garder le titre parfaitement centré comme sur l'Accueil
+            // Espaceur équilibré pour garder le titre parfaitement centré
             Color.clear
-                .frame(width: 40, height: 40)
+                .frame(width: 36, height: 36)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

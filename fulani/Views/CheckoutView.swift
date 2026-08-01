@@ -1,9 +1,6 @@
 import SwiftUI
 
 struct CheckoutView: View {
-    @EnvironmentObject var cartManager: CartManager
-    @Environment(\.presentationMode) var presentationMode
-    
     @State private var address: String = ""
     @State private var deliveryDate = Date()
     @State private var paymentMethod = 0
@@ -14,7 +11,7 @@ struct CheckoutView: View {
     var body: some View {
         Form {
             Section(header: Text("Livraison")) {
-                TextField("Adresse complète (ex: Sicap Karack, Dakar...)", text: $address)
+                TextField("Adresse complète", text: $address)
                 DatePicker("Date & Heure", selection: $deliveryDate, in: Date()..., displayedComponents: [.date, .hourAndMinute])
             }
             
@@ -39,8 +36,6 @@ struct CheckoutView: View {
             
             Section {
                 Button(action: {
-                    let generator = UINotificationFeedbackGenerator()
-                    generator.notificationOccurred(.success)
                     isOrderConfirmed = true
                 }) {
                     Text("Confirmer la commande")
@@ -57,12 +52,9 @@ struct CheckoutView: View {
         .alert(isPresented: $isOrderConfirmed) {
             Alert(
                 title: Text("Commande confirmée ✅"),
-                message: Text("Votre commande a été transmise au marché de Thiaroye et est en cours de préparation."),
-                dismissButton: .default(Text("Suivre ma commande 🚴")) {
-                    cartManager.clearCart() // Vider le panier
-                    presentationMode.wrappedValue.dismiss() // Fermer l'écran de checkout
-                    cartManager.selectedTab = 4 // Redirection automatique vers l'onglet Suivi
-                    cartManager.showToast(message: "Commande confirmée ! Suivi en cours.")
+                message: Text("Votre commande est en cours de préparation."),
+                dismissButton: .default(Text("OK")) {
+                    // Reset et navigation vers le suivi (idéalement géré par le ViewRouter)
                 }
             )
         }
@@ -72,6 +64,5 @@ struct CheckoutView: View {
 #Preview {
     NavigationView {
         CheckoutView()
-            .environmentObject(CartManager())
     }
 }
