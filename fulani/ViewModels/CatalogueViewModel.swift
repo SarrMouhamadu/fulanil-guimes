@@ -13,7 +13,7 @@ class CatalogueViewModel: ObservableObject {
         }
     }
     
-    let categories = ["Tous", "Racines", "Feuilles", "Tubercules", "Légumes-fruits", "Céréales & Légumineuses"]
+    let categories = ["Tous", "Racines", "Feuilles", "Tubercules", "Légumes-fruits"]
     
     var filteredProducts: [Product] {
         var result = Product.mockProducts

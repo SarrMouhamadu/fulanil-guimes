@@ -84,26 +84,16 @@ struct CartView: View {
         HStack(alignment: .center, spacing: 12) {
             // Miniature produit calibrée (70x70 pt) et strictement découpée contre le débordement
             Group {
-                if let imageUrlStr = item.product.imageUrl, let url = URL(string: imageUrlStr) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 70, height: 70)
-                        case .failure:
-                            fallbackCartImage(for: item.product)
-                        case .empty:
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
-                                .frame(width: 70, height: 70)
-                        @unknown default:
-                            fallbackCartImage(for: item.product)
-                        }
-                    }
+                if item.product.isSystemImage {
+                    Image(systemName: item.product.imageName)
+                        .font(.system(size: 30))
+                        .foregroundColor(Theme.primaryGreen)
+                        .frame(width: 70, height: 70)
                 } else {
-                    fallbackCartImage(for: item.product)
+                    Image(item.product.imageName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 70, height: 70)
                 }
             }
             .frame(width: 70, height: 70)
@@ -119,7 +109,7 @@ struct CartView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.78)
                     
-                    Text(item.product.pricePerKg.formattedFCFA + " / kg")
+                    Text(item.product.pricePerKg.formattedFCFA + " / " + item.product.unit)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color(.secondaryLabel))
                         .lineLimit(1)
@@ -139,7 +129,7 @@ struct CartView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     
-                    Text("\(item.quantity) kg")
+                    Text("\(item.quantity) \(item.product.unit)")
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.textDark)
                         .lineLimit(1)
@@ -178,21 +168,6 @@ struct CartView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
-    }
-    
-    @ViewBuilder
-    private func fallbackCartImage(for product: Product) -> some View {
-        if product.isSystemImage {
-            Image(systemName: product.imageName)
-                .font(.system(size: 30))
-                .foregroundColor(Theme.primaryGreen)
-                .frame(width: 70, height: 70)
-        } else {
-            Image(product.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 70, height: 70)
-        }
     }
     
     // MARK: - Section Inférieure de Commande

@@ -16,24 +16,14 @@ struct ProductDetailView: View {
                         .frame(height: 300)
                         .overlay(
                             Group {
-                                if let imageUrlStr = product.imageUrl, let url = URL(string: imageUrlStr) {
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .success(let image):
-                                            image
-                                                .resizable()
-                                                .aspectRatio(contentMode: .fill)
-                                        case .failure:
-                                            fallbackDetailImage
-                                        case .empty:
-                                            ProgressView()
-                                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
-                                        @unknown default:
-                                            fallbackDetailImage
-                                        }
-                                    }
+                                if product.isSystemImage {
+                                    Image(systemName: product.imageName)
+                                        .font(.system(size: 100))
+                                        .foregroundColor(Theme.primaryGreen)
                                 } else {
-                                    fallbackDetailImage
+                                    Image(product.imageName)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
                                 }
                             }
                         )
@@ -47,7 +37,7 @@ struct ProductDetailView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         Spacer()
-                        Text("\(product.pricePerKg) FCFA / kg")
+                        Text("\(product.pricePerKg.formattedFCFA) / \(product.unit)")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(Theme.primaryGreen)
@@ -66,7 +56,7 @@ struct ProductDetailView: View {
                     
                     // Sélecteur de quantité
                     HStack {
-                        Text("Quantité (kg)")
+                        Text("Quantité (\(product.unit))")
                             .font(.headline)
                         Spacer()
                         Stepper(value: $quantity, in: 1...20) {
@@ -114,19 +104,6 @@ struct ProductDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-    }
-    
-    @ViewBuilder
-    private var fallbackDetailImage: some View {
-        if product.isSystemImage {
-            Image(systemName: product.imageName)
-                .font(.system(size: 100))
-                .foregroundColor(Theme.primaryGreen)
-        } else {
-            Image(product.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        }
     }
 }
 

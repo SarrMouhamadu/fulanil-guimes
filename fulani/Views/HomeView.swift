@@ -18,7 +18,8 @@ struct HomeView: View {
                         
                         // Grille responsive adaptative (du petit iPhone au iPad)
                         LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
-                            ForEach(Product.mockProducts) { product in
+                            // On met en avant uniquement les légumes qui ont une vraie photo
+                            ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
                                 ProductCardView(product: product)
                             }
                         }
@@ -77,24 +78,14 @@ struct ProductCardView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .overlay(
                     Group {
-                        if let imageUrlStr = product.imageUrl, let url = URL(string: imageUrlStr) {
-                            AsyncImage(url: url) { phase in
-                                switch phase {
-                                case .success(let image):
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                case .failure:
-                                    fallbackImage
-                                case .empty:
-                                    ProgressView()
-                                        .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
-                                @unknown default:
-                                    fallbackImage
-                                }
-                            }
+                        if product.isSystemImage {
+                            Image(systemName: product.imageName)
+                                .font(.system(size: 44))
+                                .foregroundColor(Theme.primaryGreen)
                         } else {
-                            fallbackImage
+                            Image(product.imageName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
                         }
                     }
                 )
@@ -108,7 +99,7 @@ struct ProductCardView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.78) // Garantit que les noms longs rentrent sur iPhone SE
                 
-                Text(product.pricePerKg.formattedFCFA + " / kg")
+                Text(product.pricePerKg.formattedFCFA + " / " + product.unit)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color(.secondaryLabel))
                     .lineLimit(1)
@@ -139,19 +130,6 @@ struct ProductCardView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
-    }
-    
-    @ViewBuilder
-    private var fallbackImage: some View {
-        if product.isSystemImage {
-            Image(systemName: product.imageName)
-                .font(.system(size: 44))
-                .foregroundColor(Theme.primaryGreen)
-        } else {
-            Image(product.imageName)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-        }
     }
 }
 
