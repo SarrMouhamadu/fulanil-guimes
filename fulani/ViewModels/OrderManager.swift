@@ -33,14 +33,14 @@ class OrderManager: ObservableObject {
     func createOrder(clientName: String, clientPhone: String, deliveryAddress: String, cartItems: [CartItem], paymentMethod: String) -> Order {
         let orderItems = cartItems.map {
             OrderItem(
-                productName: $0.product.name,
-                pricePerKg: $0.product.pricePerKg,
+                productName: $0.title,
+                pricePerKg: $0.pricePerUnit,
                 quantity: $0.quantity,
-                unit: $0.product.unit
+                unit: $0.product != nil ? "kg" : "pack"
             )
         }
         
-        let subtotal = cartItems.reduce(0) { $0 + ($1.product.pricePerKg * $1.quantity) }
+        let subtotal = cartItems.reduce(0) { $0 + $1.totalPrice }
         let deliveryFee = subtotal >= 10000 ? 0 : 1000
         let randomNum = Int.random(in: 1000...9999)
         let orderNumber = "#EF-\(randomNum)"
