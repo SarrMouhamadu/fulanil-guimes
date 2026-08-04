@@ -66,22 +66,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 self.isLocating = false
                 
                 if let item = response?.mapItems.first {
-                    var addressComponents: [String] = []
-                    
-                    if let name = item.name, !name.isEmpty, !name.contains(",") {
-                        addressComponents.append(name)
-                    }
-                    if let subLocality = item.placemark.subLocality, !subLocality.isEmpty, !addressComponents.contains(subLocality) {
-                        addressComponents.append(subLocality)
-                    }
-                    if let locality = item.placemark.locality, !locality.isEmpty, !addressComponents.contains(locality) {
-                        addressComponents.append(locality)
-                    }
-                    
-                    if addressComponents.isEmpty {
-                        self.userAddress = String(format: "GPS: %.4f, %.4f", latitude, longitude)
+                    if let name = item.name, !name.isEmpty {
+                        self.userAddress = name
                     } else {
-                        self.userAddress = addressComponents.joined(separator: ", ")
+                        self.userAddress = String(format: "GPS: %.4f, %.4f", latitude, longitude)
                     }
                 } else {
                     self.userAddress = String(format: "GPS: %.4f, %.4f", latitude, longitude)
