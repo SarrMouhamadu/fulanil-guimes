@@ -18,8 +18,7 @@ struct HomeView: View {
                         
                         // Grille responsive adaptative (du petit iPhone au iPad)
                         LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
-                            // On met en avant uniquement les légumes qui ont une vraie photo
-                            ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
+                            ForEach(Product.mockProducts) { product in
                                 ProductCardView(product: product)
                             }
                         }
