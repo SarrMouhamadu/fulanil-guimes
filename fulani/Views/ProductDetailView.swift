@@ -37,7 +37,7 @@ struct ProductDetailView: View {
                             .font(.largeTitle)
                             .fontWeight(.bold)
                         Spacer()
-                        Text("\(product.pricePerKg.formattedFCFA) / \(product.unit)")
+                        Text("\(product.pricePerKg) FCFA / kg")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .foregroundColor(Theme.primaryGreen)
@@ -56,7 +56,7 @@ struct ProductDetailView: View {
                     
                     // Sélecteur de quantité
                     HStack {
-                        Text("Quantité (\(product.unit))")
+                        Text("Quantité (kg)")
                             .font(.headline)
                         Spacer()
                         Stepper(value: $quantity, in: 1...20) {

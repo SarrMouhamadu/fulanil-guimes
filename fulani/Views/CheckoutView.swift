@@ -2,29 +2,18 @@ import SwiftUI
 
 struct CheckoutView: View {
     @EnvironmentObject var cartManager: CartManager
-    @EnvironmentObject var authManager: AuthManager
-    @EnvironmentObject var orderManager: OrderManager
     @Environment(\.presentationMode) var presentationMode
     @StateObject private var locationManager = LocationManager()
     
-    @State private var clientName: String = ""
-    @State private var clientPhone: String = ""
     @State private var address: String = ""
     @State private var deliveryDate = Date()
     @State private var paymentMethod = 0
     @State private var isOrderConfirmed = false
-    @State private var createdOrderNumber: String = ""
     
     let paymentMethods = ["Wave", "Orange Money", "Espèces à la livraison"]
     
     var body: some View {
         Form {
-            Section(header: Text("Informations Client")) {
-                TextField("Nom complet", text: $clientName)
-                TextField("Téléphone", text: $clientPhone)
-                    .keyboardType(.phonePad)
-            }
-            
             Section(header: Text("Livraison")) {
                 HStack {
                     TextField("Adresse complète", text: $address)
@@ -68,15 +57,6 @@ struct CheckoutView: View {
             
             Section {
                 Button(action: {
-                    let selectedPayment = paymentMethods[paymentMethod]
-                    let newOrder = orderManager.createOrder(
-                        clientName: clientName.isEmpty ? (authManager.currentUser?.name ?? "Client E-Food") : clientName,
-                        clientPhone: clientPhone.isEmpty ? (authManager.currentUser?.phoneNumber ?? "+221 77 000 00 00") : clientPhone,
-                        deliveryAddress: address.isEmpty ? (authManager.currentUser?.address ?? "Dakar") : address,
-                        cartItems: cartManager.items,
-                        paymentMethod: selectedPayment
-                    )
-                    createdOrderNumber = newOrder.orderNumber
                     isOrderConfirmed = true
                 }) {
                     Text("Confirmer la commande")
@@ -88,16 +68,9 @@ struct CheckoutView: View {
                 .listRowBackground(Theme.primaryGreen)
             }
         }
-        .navigationTitle("Checkout E-Food")
+        .navigationTitle("Checkout")
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
-            if let user = authManager.currentUser {
-                clientName = user.name
-                clientPhone = user.phoneNumber
-                if !user.address.isEmpty {
-                    address = user.address
-                }
-            }
             locationManager.requestLocation()
         }
         .onChange(of: locationManager.userAddress) { _, newAddress in
@@ -107,9 +80,9 @@ struct CheckoutView: View {
         }
         .alert(isPresented: $isOrderConfirmed) {
             Alert(
-                title: Text("Commande \(createdOrderNumber) confirmée ✅"),
-                message: Text("Votre commande de légumes frais a été prise en compte sans stock et transmise au fournisseur."),
-                dismissButton: .default(Text("Voir le suivi")) {
+                title: Text("Commande confirmée ✅"),
+                message: Text("Votre commande est en cours de préparation."),
+                dismissButton: .default(Text("OK")) {
                     cartManager.confirmOrderAndNavigateToTracking()
                     presentationMode.wrappedValue.dismiss()
                 }
@@ -122,7 +95,5 @@ struct CheckoutView: View {
     NavigationView {
         CheckoutView()
             .environmentObject(CartManager())
-            .environmentObject(AuthManager())
-            .environmentObject(OrderManager())
     }
 }

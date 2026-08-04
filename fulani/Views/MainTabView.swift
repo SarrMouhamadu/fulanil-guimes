@@ -2,8 +2,6 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject var cartManager = CartManager()
-    @StateObject var authManager = AuthManager()
-    @StateObject var orderManager = OrderManager()
     
     var body: some View {
         TabView(selection: $cartManager.selectedTab) {
@@ -19,9 +17,9 @@ struct MainTabView: View {
                 }
                 .tag(1)
             
-            ChatbotView()
+            EventCalculatorView()
                 .tabItem {
-                    Label("Achat Vocal", systemImage: "mic.fill")
+                    Label("Événements", systemImage: "sparkles")
                 }
                 .tag(2)
             
@@ -37,17 +35,8 @@ struct MainTabView: View {
                     Label("Suivi", systemImage: "box.truck.badge.clock.fill")
                 }
                 .tag(4)
-            
-            // Onglet dynamique E-Food (Profil Client, Admin, Fournisseur ou Livreur)
-            roleBasedView
-                .tabItem {
-                    Label("Mon Compte", systemImage: authManager.selectedRole.iconName)
-                }
-                .tag(5)
         }
         .environmentObject(cartManager)
-        .environmentObject(authManager)
-        .environmentObject(orderManager)
         .accentColor(Theme.primaryGreen)
         .overlay(
             VStack {
@@ -68,20 +57,6 @@ struct MainTabView: View {
             }
             .animation(.easeInOut, value: cartManager.toastMessage)
         )
-    }
-    
-    @ViewBuilder
-    private var roleBasedView: some View {
-        switch authManager.selectedRole {
-        case .client:
-            ProfileView()
-        case .admin:
-            AdminDashboardView()
-        case .supplier:
-            SupplierDashboardView()
-        case .driver:
-            DeliveryDashboardView()
-        }
     }
 }
 

@@ -82,15 +82,15 @@ struct CartView: View {
     // MARK: - Carte Produit Responsive
     private func cartItemCard(for item: CartItem) -> some View {
         HStack(alignment: .center, spacing: 12) {
-            // Miniature produit calibrée (70x70 pt) et strictement découpée contre le débordement
+            // Miniature produit/panier/pack calibrée (70x70 pt)
             Group {
-                if item.product.isSystemImage {
-                    Image(systemName: item.product.imageName)
+                if item.isSystemImage {
+                    Image(systemName: item.imageName)
                         .font(.system(size: 30))
                         .foregroundColor(Theme.primaryGreen)
                         .frame(width: 70, height: 70)
                 } else {
-                    Image(item.product.imageName)
+                    Image(item.imageName)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 70, height: 70)
@@ -100,23 +100,23 @@ struct CartView: View {
             .background(Color(.systemGray6))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             
-            // Détails : Nom, Prix et Contrôleur de quantité
+            // Détails : Nom, Prix/Description et Contrôleur de quantité
             VStack(alignment: .leading, spacing: 8) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.product.name)
+                    Text(item.title)
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.textDark)
                         .lineLimit(1)
                         .minimumScaleFactor(0.78)
                     
-                    Text(item.product.pricePerKg.formattedFCFA + " / " + item.product.unit)
+                    Text(item.unitDescription)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color(.secondaryLabel))
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)
                 }
                 
-                // Contrôleur de quantité optimisé pour éviter tout débordement sur petit écran
+                // Contrôleur de quantité
                 HStack(spacing: 10) {
                     Button(action: { cartManager.updateQuantity(for: item, newQuantity: item.quantity - 1) }) {
                         Image(systemName: "minus")
@@ -129,7 +129,7 @@ struct CartView: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     
-                    Text("\(item.quantity) \(item.product.unit)")
+                    Text("\(item.quantity)")
                         .font(.system(size: 13, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.textDark)
                         .lineLimit(1)
@@ -153,7 +153,7 @@ struct CartView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Icône de suppression confortable et accessible
+            // Icône de suppression
             Button(action: {
                 cartManager.removeFromCart(item: item)
             }) {
@@ -164,7 +164,7 @@ struct CartView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(14) // Grille d'espacement HIG de 14pt (identique aux cartes de la page Accueil)
+        .padding(14)
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)

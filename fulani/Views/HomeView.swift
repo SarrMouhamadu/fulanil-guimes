@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject var cartManager: CartManager
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -8,51 +10,151 @@ struct HomeView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 20) {
-                        // Grille Produits Vedettes
-                        Text("Nos arrivages du jour")
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(Theme.textDark)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
+                    VStack(alignment: .leading, spacing: 24) {
+                        // Bannière Hero E-Food
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("E-FOOD SÉNÉGAL 🇸🇳")
+                                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Theme.primaryGreen)
+                                    .cornerRadius(10)
+                                Spacer()
+                            }
+                            
+                            Text("Marché de Thiaroye & Approvisionnement en 1 clic")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.textDark)
+                            
+                            Text("Commandez vos légumes au kilo ou vos paniers repas complets pour le ménage, les événements et les restaurants.")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color(.secondaryLabel))
+                                .lineSpacing(3)
+                        }
+                        .padding(18)
+                        .background(Color.white)
+                        .cornerRadius(20)
+                        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
                         
-                        // Grille responsive adaptative (du petit iPhone au iPad)
-                        LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
-                            // On met en avant uniquement les légumes qui ont une vraie photo
-                            ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
-                                ProductCardView(product: product)
+                        // SECTION 1 : Paniers Intelligents (Recettes Traditionnelles)
+                        VStack(alignment: .leading, spacing: 14) {
+                            HStack {
+                                Text("Paniers Intelligents 🧺")
+                                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                                    .foregroundColor(Theme.textDark)
+                                Spacer()
+                                NavigationLink(destination: CatalogueView()) {
+                                    Text("Voir tout")
+                                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                        .foregroundColor(Theme.primaryGreen)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 14) {
+                                    ForEach(SmartBasket.mockBaskets) { basket in
+                                        NavigationLink(destination: SmartBasketDetailView(basket: basket)) {
+                                            SmartBasketCardView(basket: basket)
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    }
+                                }
+                                .padding(.horizontal, 20)
+                                .padding(.vertical, 4)
                             }
                         }
-                        .padding(.horizontal, 20)
+                        
+                        // SECTION 2 : Événements & Espace Pro B2B
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("Services Spécialisés 🌟")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.textDark)
+                                .padding(.horizontal, 20)
+                            
+                            HStack(spacing: 12) {
+                                NavigationLink(destination: EventCalculatorView()) {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Image(systemName: "sparkles")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(Theme.primaryGreen)
+                                        Text("Calculateur Événements")
+                                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                                            .foregroundColor(Theme.textDark)
+                                        Text("Magal, Gamou, Mariages")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(Color(.secondaryLabel))
+                                    }
+                                    .padding(16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white)
+                                    .cornerRadius(18)
+                                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                                NavigationLink(destination: ProSpaceView()) {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Image(systemName: "building.2.fill")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(Theme.primaryGreen)
+                                        Text("Espace Pro & Cantines")
+                                            .font(.system(size: 15, weight: .bold, design: .rounded))
+                                            .foregroundColor(Theme.textDark)
+                                        Text("Restaurants & Vendeurs")
+                                            .font(.system(size: 12))
+                                            .foregroundColor(Color(.secondaryLabel))
+                                    }
+                                    .padding(16)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(Color.white)
+                                    .cornerRadius(18)
+                                    .shadow(color: Color.black.opacity(0.04), radius: 6, x: 0, y: 3)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                            }
+                            .padding(.horizontal, 20)
+                        }
+                        
+                        // SECTION 3 : Arrivages du Jour (Légumes au kilo)
+                        VStack(alignment: .leading, spacing: 14) {
+                            Text("Arrivages du jour (Marché Thiaroye)")
+                                .font(.system(size: 20, weight: .bold, design: .rounded))
+                                .foregroundColor(Theme.textDark)
+                                .padding(.horizontal, 20)
+                            
+                            LazyVGrid(columns: Theme.adaptiveGridColumns, spacing: 16) {
+                                ForEach(Product.mockProducts.filter { !$0.isSystemImage }) { product in
+                                    ProductCardView(product: product)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                        }
                     }
                     .padding(.bottom, 24)
                 }
             }
             .safeAreaInset(edge: .top) {
-                // En-tête Dynamique (Sticky Header) avec Glassmorphism
+                // Header Sticky Glassmorphism
                 HStack {
-                    Button(action: {
-                        print("Drawer menu cliqué - Ouverture du menu latéral...")
-                    }) {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(Theme.primaryGreen)
-                            .frame(width: 40, height: 40)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(Theme.primaryGreen)
                     
                     Spacer()
                     
-                    Text("Fulani Légumes")
+                    Text("E-Food Sénégal")
                         .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundColor(Theme.textDark)
                     
                     Spacer()
                     
-                    // Espaceur invisible pour garder le titre parfaitement centré
                     Color.clear
-                        .frame(width: 40, height: 40)
+                        .frame(width: 24, height: 24)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
@@ -64,15 +166,78 @@ struct HomeView: View {
     }
 }
 
+// Carte pour les Paniers Intelligents (Horizontal Scroll)
+struct SmartBasketCardView: View {
+    let basket: SmartBasket
+    @EnvironmentObject var cartManager: CartManager
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack(alignment: .topTrailing) {
+                Rectangle()
+                    .fill(Color(.systemGray6))
+                    .frame(width: 170, height: 110)
+                    .overlay(
+                        Image(systemName: basket.imageName)
+                            .font(.system(size: 40))
+                            .foregroundColor(Theme.primaryGreen)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                
+                Text("\(basket.price.formattedFCFA)")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Theme.primaryGreen)
+                    .cornerRadius(10)
+                    .padding(8)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(basket.name)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.textDark)
+                    .lineLimit(1)
+                
+                Text(basket.recipeName)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color(.secondaryLabel))
+                    .lineLimit(1)
+            }
+            
+            Button(action: {
+                cartManager.addBasketToCart(basket: basket)
+            }) {
+                HStack {
+                    Image(systemName: "plus")
+                        .font(.system(size: 11, weight: .bold))
+                    Text("Ajouter Panier")
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                }
+                .foregroundColor(Theme.primaryGreen)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(Theme.primaryGreen.opacity(0.14))
+                .cornerRadius(10)
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+        .padding(12)
+        .frame(width: 194)
+        .background(Color.white)
+        .cornerRadius(18)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 3)
+    }
+}
 
-// Sous-composant responsive pour les cartes produits
+// Carte Produit pour les Légumes au kilo
 struct ProductCardView: View {
     let product: Product
     @EnvironmentObject var cartManager: CartManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // Conteneur d'image carré à ratio fluide
             Rectangle()
                 .fill(Color(.systemGray6))
                 .aspectRatio(1, contentMode: .fit)
@@ -91,15 +256,14 @@ struct ProductCardView: View {
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 16))
             
-            // Textes protégés contre la troncature (lineLimit & minimumScaleFactor)
             VStack(alignment: .leading, spacing: 4) {
                 Text(product.name)
                     .font(.system(size: 16, weight: .bold, design: .rounded))
                     .foregroundColor(Theme.textDark)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.78) // Garantit que les noms longs rentrent sur iPhone SE
+                    .minimumScaleFactor(0.78)
                 
-                Text(product.pricePerKg.formattedFCFA + " / " + product.unit)
+                Text(product.pricePerKg.formattedFCFA + " / kg")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Color(.secondaryLabel))
                     .lineLimit(1)
@@ -108,7 +272,6 @@ struct ProductCardView: View {
             
             Spacer(minLength: 0)
             
-            // Bouton d'ajout au panier tactile et harmonisé
             Button(action: {
                 cartManager.addToCart(product: product)
             }) {
@@ -126,7 +289,7 @@ struct ProductCardView: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .padding(14) // Grille d'espacement HIG
+        .padding(14)
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
