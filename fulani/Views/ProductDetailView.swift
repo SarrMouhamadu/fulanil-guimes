@@ -16,14 +16,24 @@ struct ProductDetailView: View {
                         .frame(height: 300)
                         .overlay(
                             Group {
-                                if product.isSystemImage {
-                                    Image(systemName: product.imageName)
-                                        .font(.system(size: 100))
-                                        .foregroundColor(Theme.primaryGreen)
+                                if let imageUrlStr = product.imageUrl, let url = URL(string: imageUrlStr) {
+                                    AsyncImage(url: url) { phase in
+                                        switch phase {
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .aspectRatio(contentMode: .cover)
+                                        case .failure:
+                                            fallbackDetailImage
+                                        case .empty:
+                                            ProgressView()
+                                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
+                                        @unknown default:
+                                            fallbackDetailImage
+                                        }
+                                    }
                                 } else {
-                                    Image(product.imageName)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fill)
+                                    fallbackDetailImage
                                 }
                             }
                         )
@@ -104,6 +114,19 @@ struct ProductDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    @ViewBuilder
+    private var fallbackDetailImage: some View {
+        if product.isSystemImage {
+            Image(systemName: product.imageName)
+                .font(.system(size: 100))
+                .foregroundColor(Theme.primaryGreen)
+        } else {
+            Image(product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        }
     }
 }
 

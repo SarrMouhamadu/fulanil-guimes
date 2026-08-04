@@ -78,14 +78,24 @@ struct ProductCardView: View {
                 .aspectRatio(1, contentMode: .fit)
                 .overlay(
                     Group {
-                        if product.isSystemImage {
-                            Image(systemName: product.imageName)
-                                .font(.system(size: 44))
-                                .foregroundColor(Theme.primaryGreen)
+                        if let imageUrlStr = product.imageUrl, let url = URL(string: imageUrlStr) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .cover)
+                                case .failure:
+                                    fallbackImage
+                                case .empty:
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
+                                @unknown default:
+                                    fallbackImage
+                                }
+                            }
                         } else {
-                            Image(product.imageName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
+                            fallbackImage
                         }
                     }
                 )
@@ -130,6 +140,19 @@ struct ProductCardView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
+    }
+    
+    @ViewBuilder
+    private var fallbackImage: some View {
+        if product.isSystemImage {
+            Image(systemName: product.imageName)
+                .font(.system(size: 44))
+                .foregroundColor(Theme.primaryGreen)
+        } else {
+            Image(product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+        }
     }
 }
 

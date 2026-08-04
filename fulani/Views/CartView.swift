@@ -84,16 +84,26 @@ struct CartView: View {
         HStack(alignment: .center, spacing: 12) {
             // Miniature produit calibrée (70x70 pt) et strictement découpée contre le débordement
             Group {
-                if item.product.isSystemImage {
-                    Image(systemName: item.product.imageName)
-                        .font(.system(size: 30))
-                        .foregroundColor(Theme.primaryGreen)
-                        .frame(width: 70, height: 70)
+                if let imageUrlStr = item.product.imageUrl, let url = URL(string: imageUrlStr) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .cover)
+                                .frame(width: 70, height: 70)
+                        case .failure:
+                            fallbackCartImage(for: item.product)
+                        case .empty:
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Theme.primaryGreen))
+                                .frame(width: 70, height: 70)
+                        @unknown default:
+                            fallbackCartImage(for: item.product)
+                        }
+                    }
                 } else {
-                    Image(item.product.imageName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 70, height: 70)
+                    fallbackCartImage(for: item.product)
                 }
             }
             .frame(width: 70, height: 70)
@@ -168,6 +178,21 @@ struct CartView: View {
         .background(Color.white)
         .cornerRadius(20)
         .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
+    }
+    
+    @ViewBuilder
+    private func fallbackCartImage(for product: Product) -> some View {
+        if product.isSystemImage {
+            Image(systemName: product.imageName)
+                .font(.system(size: 30))
+                .foregroundColor(Theme.primaryGreen)
+                .frame(width: 70, height: 70)
+        } else {
+            Image(product.imageName)
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 70, height: 70)
+        }
     }
     
     // MARK: - Section Inférieure de Commande
