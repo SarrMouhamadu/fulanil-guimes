@@ -22,7 +22,7 @@ struct ProductDetailView: View {
                                         case .success(let image):
                                             image
                                                 .resizable()
-                                                .aspectRatio(contentMode: .cover)
+                                                .aspectRatio(contentMode: .fill)
                                         case .failure:
                                             fallbackDetailImage
                                         case .empty:

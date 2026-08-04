@@ -84,7 +84,7 @@ struct ProductCardView: View {
                                 case .success(let image):
                                     image
                                         .resizable()
-                                        .aspectRatio(contentMode: .cover)
+                                        .aspectRatio(contentMode: .fill)
                                 case .failure:
                                     fallbackImage
                                 case .empty:

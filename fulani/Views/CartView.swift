@@ -90,7 +90,7 @@ struct CartView: View {
                         case .success(let image):
                             image
                                 .resizable()
-                                .aspectRatio(contentMode: .cover)
+                                .aspectRatio(contentMode: .fill)
                                 .frame(width: 70, height: 70)
                         case .failure:
                             fallbackCartImage(for: item.product)
